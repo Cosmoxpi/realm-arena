@@ -3,15 +3,23 @@ import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { toast } from "sonner";
 import { Gamepad2, Loader2 } from "lucide-react";
 
+// ✅ Validation Schemas
 const emailSchema = z.string().trim().email({ message: "Enter a valid email" }).max(255);
-const passwordSchema = z.string().min(8, "Password must be at least 8 characters").max(72);
+
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(72);
+
 const usernameSchema = z
   .string()
   .trim()
@@ -30,10 +38,12 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
+  // ✅ Auto redirect if logged in
   useEffect(() => {
     if (user) navigate("/dashboard", { replace: true });
   }, [user, navigate]);
 
+  // ✅ Email/Password Auth
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -78,15 +88,7 @@ const Auth = () => {
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
-        const msg = err.message.toLowerCase();
-
-        if (msg.includes("user already registered")) {
-          toast.error("Account already exists. Try signing in.");
-        } else if (msg.includes("invalid login")) {
-          toast.error("Wrong email or password.");
-        } else {
-          toast.error(err.message);
-        }
+        toast.error(err.message);
       } else {
         toast.error("Something went wrong");
       }
@@ -95,6 +97,7 @@ const Auth = () => {
     }
   };
 
+  // ✅ Google OAuth (CORRECT FLOW)
   const handleGoogle = async () => {
     try {
       setOauthLoading(true);
@@ -102,7 +105,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -121,6 +124,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
+        {/* Logo */}
         <Link to="/" className="flex items-center gap-2 justify-center mb-6">
           <Gamepad2 />
           <span className="text-xl font-bold">PlayHub</span>
@@ -128,6 +132,7 @@ const Auth = () => {
 
         <div className="bg-white p-6 rounded-xl shadow">
 
+          {/* Google Login */}
           <Button
             onClick={handleGoogle}
             disabled={oauthLoading || loading}
@@ -140,6 +145,7 @@ const Auth = () => {
             )}
           </Button>
 
+          {/* Tabs */}
           <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
             <TabsList className="grid grid-cols-2 mb-4">
               <TabsTrigger value="signin">Sign in</TabsTrigger>
