@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -9,8 +8,8 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        // ✅ IMPORTANT: this parses hash from URL
-        const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        // ✅ This reads token from URL hash automatically
+        const { data, error } = await supabase.auth.getSession();
 
         if (error) {
           console.error("Auth error:", error.message);
@@ -18,14 +17,14 @@ const AuthCallback = () => {
           return;
         }
 
-        if (data?.session) {
-          console.log("Login success:", data.session.user);
+        if (data.session) {
+          console.log("User:", data.session.user);
           navigate("/dashboard");
         } else {
           navigate("/auth");
         }
       } catch (err) {
-        console.error("Unexpected error:", err);
+        console.error(err);
         navigate("/auth");
       }
     };
@@ -33,12 +32,7 @@ const AuthCallback = () => {
     handleAuth();
   }, [navigate]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="animate-spin w-6 h-6" />
-      <span className="ml-2">Signing you in...</span>
-    </div>
-  );
+  return <p>Signing you in...</p>;
 };
 
 export default AuthCallback;
