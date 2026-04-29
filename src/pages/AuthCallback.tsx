@@ -8,7 +8,7 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        // ✅ This reads token from URL hash automatically
+        // ✅ This forces Supabase to read URL hash (access_token)
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
@@ -17,10 +17,23 @@ const AuthCallback = () => {
           return;
         }
 
-        if (data.session) {
-          console.log("User:", data.session.user);
+        // 🔥 IMPORTANT: manually set session if needed
+        if (!data.session && window.location.hash.includes("access_token")) {
+          console.log("Processing token from URL...");
+
+          await supabase.auth.setSession({
+            access_token: new URLSearchParams(window.location.hash.substring(1)).get("access_token")!,
+            refresh_token: new URLSearchParams(window.location.hash.substring(1)).get("refresh_token")!,
+          });
+        }
+
+        const { data: finalSession } = await supabase.auth.getSession();
+
+        if (finalSession.session) {
+          console.log("LOGIN SUCCESS");
           navigate("/dashboard");
         } else {
+          console.log("NO SESSION");
           navigate("/auth");
         }
       } catch (err) {
@@ -32,7 +45,7 @@ const AuthCallback = () => {
     handleAuth();
   }, [navigate]);
 
-  return <p>Signing you in...</p>;
+  return <p style={{ textAlign: "center" }}>Signing you in...</p>;
 };
 
 export default AuthCallback;
