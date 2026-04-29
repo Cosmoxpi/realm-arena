@@ -32,33 +32,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ SAFE profile fetch
   const fetchProfile = async (uid: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", uid)
-      .maybeSingle();
-    setProfile(data as Profile | null);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", uid)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Profile fetch error:", error.message);
+        setProfile(null);
+        return;
+      }
+
+      setProfile(data ?? null);
+    } catch (err) {
+      console.error("Unexpected profile error:", err);
+      setProfile(null);
+    }
   };
 
   useEffect(() => {
-    // Set listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
+    // ✅ LISTENER FIRST
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
+
       if (sess?.user) {
-        // defer to avoid deadlock
-        setTimeout(() => fetchProfile(sess.user.id), 0);
+        setTimeout(() => {
+          fetchProfile(sess.user.id);
+        }, 0);
       } else {
         setProfile(null);
       }
     });
 
-    // THEN check existing
+    // ✅ INITIAL SESSION
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
       setUser(sess?.user ?? null);
-      if (sess?.user) fetchProfile(sess.user.id);
+
+      if (sess?.user) {
+        fetchProfile(sess.user.id);
+      }
+
       setLoading(false);
     });
 
@@ -67,6 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setProfile(null);
   };
 
   const refreshProfile = async () => {
@@ -74,8 +98,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signOut, refreshProfile }}>
-      {children}
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        profile,
+        loading,
+        signOut,
+        refreshProfile,
+      }}
+    >
+      {loading ? (
+        <div style={{ textAlign: "center", marginTop: "2rem" }}>
+          Loading app...
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }
