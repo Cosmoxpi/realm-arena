@@ -67,7 +67,7 @@ const Auth = () => {
           email: e1.data,
           password: p1.data,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}/#/dashboard`,
             data: {
               username: u1.data,
               display_name: u1.data,
@@ -97,7 +97,7 @@ const Auth = () => {
     }
   };
 
-  // ✅ Google OAuth (CORRECT FLOW)
+  // ✅ Google OAuth (FIXED FOR HASH ROUTER)
   const handleGoogle = async () => {
     try {
       setOauthLoading(true);
@@ -105,7 +105,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/#/auth/callback`, // ✅ FIXED
         },
       });
 

@@ -9,8 +9,8 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        // ✅ IMPORTANT: This parses the URL and sets session
-        const { data, error } = await supabase.auth.getSession();
+        // ✅ IMPORTANT: this parses hash from URL
+        const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
 
         if (error) {
           console.error("Auth error:", error.message);
@@ -18,15 +18,10 @@ const AuthCallback = () => {
           return;
         }
 
-        if (data.session) {
+        if (data?.session) {
           console.log("Login success:", data.session.user);
-
-          // ✅ small delay to avoid race conditions
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 500);
+          navigate("/dashboard");
         } else {
-          console.warn("No session found");
           navigate("/auth");
         }
       } catch (err) {
