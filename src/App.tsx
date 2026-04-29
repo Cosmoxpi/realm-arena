@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -27,29 +27,26 @@ const App = () => (
       <Toaster />
       <Sonner />
 
-      {/* ✅ HASH ROUTER (FIXED) */}
-      <HashRouter>
-        <AuthProvider>
-          <Routes>
+      <AuthProvider>
+        <Routes>
 
-            {/* Public */}
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
+          {/* Public */}
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
-            {/* Protected */}
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
-            <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
-            <Route path="/play/:gameType/:roomId" element={<ProtectedRoute><GameRoom /></ProtectedRoute>} />
+          {/* Protected */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+          <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+          <Route path="/play/:gameType/:roomId" element={<ProtectedRoute><GameRoom /></ProtectedRoute>} />
 
-            {/* Fallback */}
-            <Route path="*" element={<NotFound />} />
+          {/* Fallback */}
+          <Route path="*" element={<NotFound />} />
 
-          </Routes>
-        </AuthProvider>
-      </HashRouter>
+        </Routes>
+      </AuthProvider>
 
     </TooltipProvider>
   </QueryClientProvider>
